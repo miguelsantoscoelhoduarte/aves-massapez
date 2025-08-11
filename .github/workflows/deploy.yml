@@ -3,8 +3,6 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [ "master", "main" ]
-  pull_request:
-    branches: [ "master", "main" ]
 
 permissions:
   contents: read
@@ -26,14 +24,12 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: exotic-birds-shop/package-lock.json
+        node-version: '16'
 
     - name: Install dependencies
       run: |
         cd exotic-birds-shop
-        npm install
+        npm install --legacy-peer-deps
 
     - name: Build
       run: |
