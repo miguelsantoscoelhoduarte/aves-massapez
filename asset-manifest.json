@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/aves-massapez/static/css/main.5f37609d.css",
+    "main.js": "/aves-massapez/static/js/main.9022bc24.js",
+    "index.html": "/aves-massapez/index.html",
+    "main.5f37609d.css.map": "/aves-massapez/static/css/main.5f37609d.css.map",
+    "main.9022bc24.js.map": "/aves-massapez/static/js/main.9022bc24.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.5f37609d.css",
+    "static/js/main.9022bc24.js"
+  ]
+}
