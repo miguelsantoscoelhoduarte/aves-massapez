@@ -1,16 +1,17 @@
 {
   "files": {
     "main.css": "/aves-massapez/static/css/main.5155be6c.css",
-    "main.js": "/aves-massapez/static/js/main.f4889601.js",
+    "main.js": "/aves-massapez/static/js/main.12994053.js",
+    "static/media/pavoes_azuis.jpg": "/aves-massapez/static/media/pavoes_azuis.3ca0fa47fb4d80ad997b.jpg",
     "static/media/arara.jpeg": "/aves-massapez/static/media/arara.f0947fb28070b36daa55.jpeg",
     "static/media/logo.jpeg": "/aves-massapez/static/media/logo.4401d2411617aff537ec.jpeg",
     "static/media/papagaio.jpeg": "/aves-massapez/static/media/papagaio.267aeb9189f24400019b.jpeg",
     "index.html": "/aves-massapez/index.html",
     "main.5155be6c.css.map": "/aves-massapez/static/css/main.5155be6c.css.map",
-    "main.f4889601.js.map": "/aves-massapez/static/js/main.f4889601.js.map"
+    "main.12994053.js.map": "/aves-massapez/static/js/main.12994053.js.map"
   },
   "entrypoints": [
     "static/css/main.5155be6c.css",
-    "static/js/main.f4889601.js"
+    "static/js/main.12994053.js"
   ]
 }
