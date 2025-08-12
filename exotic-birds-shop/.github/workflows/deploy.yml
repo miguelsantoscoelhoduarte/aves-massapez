@@ -17,6 +17,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./exotic-birds-shop
     
     steps:
     - name: Checkout
@@ -27,6 +30,7 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
+        cache-dependency-path: './exotic-birds-shop/package-lock.json'
         
     - name: Clean install dependencies
       run: |
@@ -44,7 +48,7 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v2
       with:
-        path: ./build
+        path: ./exotic-birds-shop/build
 
   deploy:
     environment:
