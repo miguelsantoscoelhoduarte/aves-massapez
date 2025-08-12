@@ -4,8 +4,70 @@ import logo from './assets/images/logo.jpeg';
 // ------- CONFIG -------
 const BUSINESS = {
   // Replace with your WhatsApp number in international format (no + or spaces)
-  whatsappNumber: "351900000000", // e.g., Portugal: 3519XXXXXXXX
+  whatsappNumber: process.env.REACT_APP_WHATSAPP_NUMBER || "351900000000", // fallback for development
   shopName: "Aves Massapez"
+};
+
+// ------- TRANSLATIONS -------
+const TRANSLATIONS = {
+  pt: {
+    home: "Home",
+    catalog: "Catálogo", 
+    cart: "Carrinho",
+    heroTitle: "Criador de aves exóticas e ornamentais.",
+    heroSubtitle: "Veja o nosso catálogo e fale connosco.",
+    viewCatalog: "Ver Catálogo",
+    wellbeing: "Bem-estar",
+    enrichment: "Enriquecimento ambiental",
+    veterinary: "Acompanhamento veterinário",
+    add: "Adicionar",
+    inCart: "No carrinho:",
+    cartEmpty: "O seu carrinho está vazio. Adicione aves no catálogo.",
+    summary: "Resumo",
+    subtotal: "Subtotal",
+    total: "Total",
+    buyWhatsApp: "Comprar via WhatsApp",
+    whatsAppNote: "Será aberta uma nova janela com uma mensagem pré-preenchida com o seu pedido.",
+    qty: "Qtd.",
+    remove: "Remover",
+    price: "Preço:",
+    rights: "Todos os direitos reservados.",
+    viewCatalogFooter: "Ver catálogo",
+    orderMessage: "Olá! Gostaria de comprar:",
+    each: "cada",
+    name: "Nome:",
+    contact: "Contacto preferido:",
+    instagram: "Instagram"
+  },
+  en: {
+    home: "Home",
+    catalog: "Catalog",
+    cart: "Cart", 
+    heroTitle: "Exotic and ornamental birds breeder.",
+    heroSubtitle: "Check our catalog and contact us.",
+    viewCatalog: "View Catalog",
+    wellbeing: "Well-being",
+    enrichment: "Environmental enrichment", 
+    veterinary: "Veterinary care",
+    add: "Add",
+    inCart: "In cart:",
+    cartEmpty: "Your cart is empty. Add birds from the catalog.",
+    summary: "Summary",
+    subtotal: "Subtotal",
+    total: "Total", 
+    buyWhatsApp: "Buy via WhatsApp",
+    whatsAppNote: "A new window will open with a pre-filled message with your order.",
+    qty: "Qty.",
+    remove: "Remove",
+    price: "Price:",
+    rights: "All rights reserved.",
+    viewCatalogFooter: "View catalog",
+    orderMessage: "Hello! I would like to buy:",
+    each: "each",
+    name: "Name:",
+    contact: "Preferred contact:",
+    instagram: "Instagram"
+  }
 };
 
 const CURRENCY = new Intl.NumberFormat("pt-PT", {
@@ -37,7 +99,10 @@ function clamp(n, min, max) {
 export default function App() {
   const [route, setRoute] = useState("home"); // 'home' | 'catalog' | 'cart'
   const [cart, setCart] = useState({}); // { [productId]: quantity }
+  const [language, setLanguage] = useState("pt"); // 'pt' | 'en'
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const cartCount = useMemo(() => Object.values(cart).reduce((a, b) => a + b, 0), [cart]);
+  const t = TRANSLATIONS[language];
 
   useEffect(() => {
     const saved = localStorage.getItem("birdshop_cart");
@@ -75,15 +140,15 @@ export default function App() {
 
   // Build checkout message
   function buildOrderMessage() {
-    const lines = cartItems.map(i => `- ${i.product.name} x${i.qty} — ${formatPrice(i.product.price)} cada`);
+    const lines = cartItems.map(i => `- ${i.product.name} x${i.qty} — ${formatPrice(i.product.price)} ${t.each}`);
     const body = [
-      `Olá! Gostaria de comprar:`,
+      `${t.orderMessage}`,
       ...lines,
       ``,
-      `Total: ${formatPrice(cartTotal)}`,
+      `${t.total}: ${formatPrice(cartTotal)}`,
       ``,
-      `Nome:`,
-      `Contacto preferido:`,
+      `${t.name}`,
+      `${t.contact}`,
     ].join("\n");
     return body;
   }
@@ -105,35 +170,99 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 text-stone-900 flex flex-col">
+    <div className="min-h-screen text-stone-900 flex flex-col" style={{background: route === "home" ? "linear-gradient(to bottom right, #ecfccb, #fef3c7, #e0f2fe)" : "#fafaf9"}}>
       {/* NAVBAR */}
       <header className="sticky top-0 z-30 bg-white/80 backdrop-blur border-b border-stone-200">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">🦜</span>
             <span className="font-semibold text-xl">{BUSINESS.shopName}</span>
           </div>
-          <nav className="flex items-center gap-2 sm:gap-3">
-            <NavBtn active={route === "home"} onClick={() => setRoute("home")}>Home</NavBtn>
-            <NavBtn active={route === "catalog"} onClick={() => setRoute("catalog")}>Catálogo</NavBtn>
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-2 sm:gap-3">
+            <NavBtn active={route === "home"} onClick={() => setRoute("home")}>{t.home}</NavBtn>
+            <NavBtn active={route === "catalog"} onClick={() => setRoute("catalog")}>{t.catalog}</NavBtn>
             <button
               onClick={() => setRoute("cart")}
               className="relative px-3 py-2 rounded-xl text-sm bg-stone-900 text-white hover:bg-stone-800 transition"
-              aria-label={`Abrir carrinho com ${cartCount} item(s)`}
+              aria-label={`${t.cart} (${cartCount})`}
             >
-              Carrinho
+              {t.cart}
               <span className="ml-2 inline-flex items-center justify-center min-w-6 h-6 text-xs font-semibold bg-white text-stone-900 rounded-full px-1">
                 {cartCount}
               </span>
             </button>
+            <button
+              onClick={() => setLanguage(language === "pt" ? "en" : "pt")}
+              className="px-3 py-2 rounded-xl text-sm border border-stone-300 bg-white text-stone-800 hover:border-stone-400 transition"
+            >
+              🌐 {language === "pt" ? "EN" : "PT"}
+            </button>
           </nav>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 rounded-lg border border-stone-300 bg-white text-stone-800 hover:border-stone-400 transition"
+            aria-label="Menu"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {mobileMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
         </div>
+
+        {/* Mobile Menu Overlay */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-white border-b border-stone-200 px-4 py-3">
+            <nav className="flex flex-col gap-3">
+              <button
+                onClick={() => {setRoute("home"); setMobileMenuOpen(false)}}
+                className={`px-3 py-2 rounded-xl text-sm border transition text-center ${
+                  route === "home"
+                    ? "bg-stone-900 text-white border-stone-900"
+                    : "bg-white text-stone-800 border-stone-300 hover:border-stone-400"
+                }`}
+              >
+                {t.home}
+              </button>
+              <button
+                onClick={() => {setRoute("catalog"); setMobileMenuOpen(false)}}
+                className={`px-3 py-2 rounded-xl text-sm border transition text-center ${
+                  route === "catalog"
+                    ? "bg-stone-900 text-white border-stone-900"
+                    : "bg-white text-stone-800 border-stone-300 hover:border-stone-400"
+                }`}
+              >
+                {t.catalog}
+              </button>
+              <button
+                onClick={() => {setRoute("cart"); setMobileMenuOpen(false)}}
+                className="relative px-3 py-2 rounded-xl text-sm bg-stone-900 text-white hover:bg-stone-800 transition text-center"
+              >
+                {t.cart}
+                <span className="ml-2 inline-flex items-center justify-center min-w-6 h-6 text-xs font-semibold bg-white text-stone-900 rounded-full px-1">
+                  {cartCount}
+                </span>
+              </button>
+              <button
+                onClick={() => setLanguage(language === "pt" ? "en" : "pt")}
+                className="px-3 py-2 rounded-xl text-sm border border-stone-300 bg-white text-stone-800 hover:border-stone-400 transition text-center"
+              >
+                🌐 {language === "pt" ? "EN" : "PT"}
+              </button>
+            </nav>
+          </div>
+        )}
       </header>
 
       {/* ROUTES */}
       <main className="flex-1">
-        {route === "home" && <Home onShopNow={() => setRoute("catalog")} onHowItWorks={goToCatalog} />}
-        {route === "catalog" && <Catalog onAdd={addToCart} cart={cart} />}
+        {route === "home" && <Home onShopNow={() => setRoute("catalog")} onHowItWorks={goToCatalog} t={t} />}
+        {route === "catalog" && <Catalog onAdd={addToCart} cart={cart} t={t} />}
         {route === "cart" && (
           <Cart
             items={cartItems}
@@ -141,21 +270,26 @@ export default function App() {
             onQty={setQty}
             onRemove={removeFromCart}
             onCheckoutWhatsApp={checkoutWhatsApp}
+            t={t}
           />
         )}
       </main>
 
       <footer className="border-t border-stone-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 py-6 text-sm text-stone-500 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p>© {new Date().getFullYear()} {BUSINESS.shopName}. Todos os direitos reservados.</p>
+          <p>© {new Date().getFullYear()} {BUSINESS.shopName}. {t.rights}</p>
           <p>
             <button className="underline underline-offset-4 decoration-dotted" onClick={() => setRoute("catalog")}>
-              Ver catálogo
+              {t.viewCatalogFooter}
             </button>
             <span className="mx-2">•</span>
             <button className="underline underline-offset-4 decoration-dotted" onClick={() => setRoute("cart")}>
-              Carrinho ({cartCount})
+              {t.cart} ({cartCount})
             </button>
+            <span className="mx-2">•</span>
+            <a href="https://instagram.com/aves_massapez" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4 decoration-dotted">
+              {t.instagram}
+            </a>
           </p>
         </div>
       </footer>
@@ -164,27 +298,26 @@ export default function App() {
 }
 
 // ------- UI SECTIONS -------
-function Home({ onShopNow, onHowItWorks }) {
+function Home({ onShopNow, onHowItWorks, t }) {
   return (
     <section className="relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-lime-100 via-amber-100 to-sky-100" />
       <div className="relative max-w-6xl mx-auto px-4 py-16 sm:py-20 grid md:grid-cols-2 gap-10 items-center">
         <div>
           <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight">
-            Criador de aves exóticas e ornamentais.
+            {t.heroTitle}
           </h1>
           <p className="mt-4 text-lg text-stone-700">
-            Veja o nosso catálogo e fale connosco.
+            {t.heroSubtitle}
           </p>
           <div className="mt-6 flex gap-3">
             <button onClick={onShopNow} className="px-5 py-3 rounded-xl bg-stone-900 text-white hover:bg-stone-800 transition">
-              Ver Catálogo
+              {t.viewCatalog}
             </button>
           </div>
           <ul className="mt-6 text-sm text-stone-600 grid grid-cols-2 gap-2">
-            <li>✓ Bem-estar</li>
-            <li>✓ Enriquecimento ambiental</li>
-            <li>✓ Acompanhamento veterinário</li>
+            <li>✓ {t.wellbeing}</li>
+            <li>✓ {t.enrichment}</li>
+            <li>✓ {t.veterinary}</li>
           </ul>
         </div>
         <div className="aspect-square rounded-full flex items-center justify-center w-80 h-80 mx-auto">
@@ -195,12 +328,12 @@ function Home({ onShopNow, onHowItWorks }) {
   );
 }
 
-function Catalog({ onAdd, cart }) {
+function Catalog({ onAdd, cart, t }) {
   return (
     <section id="catalogo" className="max-w-6xl mx-auto px-4 py-12">
       <div className="flex items-end justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-bold">Catálogo</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold">{t.catalog}</h2>
 
         </div>
       </div>
@@ -216,10 +349,10 @@ function Catalog({ onAdd, cart }) {
                   onClick={() => onAdd(p.id, 1)}
                   className="flex-1 px-4 py-2 rounded-xl bg-stone-900 text-white hover:bg-stone-800 transition"
                 >
-                  Adicionar
+                  {t.add}
                 </button>
                 {cart[p.id] > 0 && (
-                  <span className="text-sm text-stone-600">No carrinho: {cart[p.id]}</span>
+                  <span className="text-sm text-stone-600">{t.inCart} {cart[p.id]}</span>
                 )}
               </div>
             </div>
@@ -230,12 +363,12 @@ function Catalog({ onAdd, cart }) {
   );
 }
 
-function Cart({ items, total, onQty, onRemove, onCheckoutWhatsApp }) {
+function Cart({ items, total, onQty, onRemove, onCheckoutWhatsApp, t }) {
   return (
     <section className="max-w-6xl mx-auto px-4 py-12">
-      <h2 className="text-2xl sm:text-3xl font-bold">Carrinho</h2>
+      <h2 className="text-2xl sm:text-3xl font-bold">{t.cart}</h2>
       {items.length === 0 ? (
-        <p className="mt-4 text-stone-600">O seu carrinho está vazio. Adicione aves no catálogo.</p>
+        <p className="mt-4 text-stone-600">{t.cartEmpty}</p>
       ) : (
         <div className="mt-6 grid lg:grid-cols-[1fr,380px] gap-6 items-start">
           <div className="bg-white border border-stone-200 rounded-2xl overflow-hidden">
@@ -245,9 +378,9 @@ function Cart({ items, total, onQty, onRemove, onCheckoutWhatsApp }) {
                   <img src={product.image} alt="" className="w-20 h-20 rounded-lg object-cover border border-stone-200" />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{product.name}</p>
-                    <p className="text-sm text-stone-600">Preço: {formatPrice(product.price)}</p>
+                    <p className="text-sm text-stone-600">{t.price} {formatPrice(product.price)}</p>
                     <div className="mt-2 flex items-center gap-2">
-                      <label htmlFor={`qty-${product.id}`} className="text-sm text-stone-600">Qtd.</label>
+                      <label htmlFor={`qty-${product.id}`} className="text-sm text-stone-600">{t.qty}</label>
                       <input
                         id={`qty-${product.id}`}
                         type="number"
@@ -257,7 +390,7 @@ function Cart({ items, total, onQty, onRemove, onCheckoutWhatsApp }) {
                         onChange={(e) => onQty(product.id, e.target.value)}
                         className="w-20 rounded-lg border border-stone-300 px-2 py-1"
                       />
-                      <button onClick={() => onRemove(product.id)} className="px-3 py-1 rounded-lg border border-stone-300 hover:bg-stone-50">Remover</button>
+                      <button onClick={() => onRemove(product.id)} className="px-3 py-1 rounded-lg border border-stone-300 hover:bg-stone-50">{t.remove}</button>
                     </div>
                   </div>
                   <div className="text-right">
@@ -269,14 +402,14 @@ function Cart({ items, total, onQty, onRemove, onCheckoutWhatsApp }) {
           </div>
 
           <aside className="bg-white border border-stone-200 rounded-2xl p-5 sticky top-24">
-            <h3 className="font-semibold text-lg">Resumo</h3>
+            <h3 className="font-semibold text-lg">{t.summary}</h3>
             <dl className="mt-4 space-y-2 text-sm">
               <div className="flex justify-between">
-                <dt>Subtotal</dt>
+                <dt>{t.subtotal}</dt>
                 <dd>{formatPrice(total)}</dd>
               </div>
               <div className="pt-2 border-t border-dashed border-stone-200 flex justify-between font-semibold">
-                <dt>Total</dt>
+                <dt>{t.total}</dt>
                 <dd>{formatPrice(total)}</dd>
               </div>
             </dl>
@@ -286,9 +419,9 @@ function Cart({ items, total, onQty, onRemove, onCheckoutWhatsApp }) {
                 onClick={onCheckoutWhatsApp}
                 className="w-full px-4 py-3 rounded-xl bg-green-600 text-white hover:bg-green-700 transition"
               >
-                Comprar via WhatsApp
+                {t.buyWhatsApp}
               </button>
-              <p className="text-xs text-stone-500">Será aberta uma nova janela com uma mensagem pré-preenchida com o seu pedido.</p>
+              <p className="text-xs text-stone-500">{t.whatsAppNote}</p>
             </div>
           </aside>
         </div>
