@@ -1,14 +1,14 @@
 {
   "files": {
     "main.css": "/aves-massapez/static/css/main.0c465a33.css",
-    "main.js": "/aves-massapez/static/js/main.509b6db4.js",
+    "main.js": "/aves-massapez/static/js/main.53d28c9f.js",
     "static/media/logo.jpeg": "/aves-massapez/static/media/logo.4401d2411617aff537ec.jpeg",
     "index.html": "/aves-massapez/index.html",
     "main.0c465a33.css.map": "/aves-massapez/static/css/main.0c465a33.css.map",
-    "main.509b6db4.js.map": "/aves-massapez/static/js/main.509b6db4.js.map"
+    "main.53d28c9f.js.map": "/aves-massapez/static/js/main.53d28c9f.js.map"
   },
   "entrypoints": [
     "static/css/main.0c465a33.css",
-    "static/js/main.509b6db4.js"
+    "static/js/main.53d28c9f.js"
   ]
 }
