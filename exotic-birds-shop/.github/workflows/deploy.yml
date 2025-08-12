@@ -2,8 +2,6 @@ name: Build and Deploy
 on:
   push:
     branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
 
 permissions:
   contents: read
@@ -17,30 +15,30 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./exotic-birds-shop
     
     steps:
     - name: Checkout
       uses: actions/checkout@v4
       
     - name: Setup Node
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
-        node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: './exotic-birds-shop/package-lock.json'
+        node-version: '20'
         
-    - name: Clean install dependencies
+    - name: Change to project directory and install dependencies
       run: |
+        cd exotic-birds-shop
+        npm cache clean --force
         rm -rf node_modules package-lock.json
-        npm install
+        npm install --legacy-peer-deps
       
-    - name: Build
-      run: npm run build
+    - name: Build project
+      run: |
+        cd exotic-birds-shop
+        npm run build
       env:
         REACT_APP_WHATSAPP_NUMBER: ${{ secrets.REACT_APP_WHATSAPP_NUMBER }}
+        CI: false
         
     - name: Setup Pages
       uses: actions/configure-pages@v3
