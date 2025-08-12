@@ -2,11 +2,12 @@ import React, { useEffect, useMemo, useState } from "react";
 import logo from './assets/images/logo.jpeg';
 import arara from './assets/images/arara.jpeg';
 import papagaio from './assets/images/papagaio.jpeg';
+import pavoesAzuis from './assets/images/pavoes_azuis.jpg';
 
 // ------- CONFIG -------
 const BUSINESS = {
   // Replace with your WhatsApp number in international format (no + or spaces)
-  whatsappNumber: process.env.REACT_APP_WHATSAPP_NUMBER || "351900000000", // fallback for development
+  whatsappNumber: process.env.REACT_APP_WHATSAPP_NUMBER || "351935135691", // fallback for development
   shopName: "Aves Massapez"
 };
 
@@ -87,7 +88,8 @@ const CURRENCY = new Intl.NumberFormat("pt-PT", {
 
 // Demo catalog (dummy images). Replace prices/images/names as needed.
 const PRODUCTS = [
-  { id: "african-grey", name: "African Grey Parrot", price: 1800, image: "https://placehold.co/600x400?text=African+Grey" },
+  { id: "pavoes-azuis", name: "Pavões Azuis", price: 150, image: pavoesAzuis },
+  /*
   { id: "blue-and-gold-macaw", name: "Blue-and-Gold Macaw", price: 2400, image: "https://placehold.co/600x400?text=Blue+%26+Gold+Macaw" },
   { id: "scarlet-macaw", name: "Scarlet Macaw", price: 2600, image: "https://placehold.co/600x400?text=Scarlet+Macaw" },
   { id: "cockatoo", name: "Umbrella Cockatoo", price: 2200, image: "https://placehold.co/600x400?text=Umbrella+Cockatoo" },
@@ -95,6 +97,7 @@ const PRODUCTS = [
   { id: "ringneck", name: "Indian Ringneck", price: 450, image: "https://placehold.co/600x400?text=Indian+Ringneck" },
   { id: "conure", name: "Sun Conure", price: 650, image: "https://placehold.co/600x400?text=Sun+Conure" },
   { id: "lovebird", name: "Fischer's Lovebird (pair)", price: 170, image: "https://placehold.co/600x400?text=Lovebirds" },
+   */
 ];
 
 // ------- HELPERS -------
