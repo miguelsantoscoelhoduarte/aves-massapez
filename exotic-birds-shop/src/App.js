@@ -44,7 +44,16 @@ const TRANSLATIONS = {
     each: "cada",
     name: "Nome:",
     contact: "Contacto preferido:",
-    instagram: "Instagram"
+    instagram: "Instagram",
+    backToCatalog: "Voltar ao Catálogo",
+    color: "Cor:",
+    age: "Idade:",
+    addToCart: "Adicionar ao Carrinho",
+    buy: "Comprar",
+    from: "A partir de",
+    inStock: "Em stock",
+    outOfStock: "Esgotado", 
+    lowStock: "Pouco stock"
   },
   en: {
     home: "Home",
@@ -77,7 +86,16 @@ const TRANSLATIONS = {
     each: "each",
     name: "Name:",
     contact: "Preferred contact:",
-    instagram: "Instagram"
+    instagram: "Instagram",
+    backToCatalog: "Back to Catalog",
+    color: "Color:",
+    age: "Age:",
+    addToCart: "Add to Cart",
+    buy: "Buy",
+    from: "From",
+    inStock: "In stock",
+    outOfStock: "Out of stock",
+    lowStock: "Low stock"
   }
 };
 
@@ -86,12 +104,61 @@ const CURRENCY = new Intl.NumberFormat("pt-PT", {
   currency: "EUR",
 });
 
-// Demo catalog (dummy images). Replace prices/images/names as needed.
+// Demo catalog with detailed product information
 const PRODUCTS = [
-  { id: "pavoes-azuis", name: "Pavões Azuis", price: 150, image: pavoesAzuis },
+  { 
+    id: "pavoes-azuis", 
+    name: "Pavões Azuis", 
+    basePrice: 120,
+    image: pavoesAzuis,
+    images: [pavoesAzuis, arara, papagaio],
+    description: "Lindos pavões azuis criados com muito cuidado e carinho. Aves saudáveis e bem socializadas.",
+    stock: "in", // "in", "low", "out"
+    colors: [
+      { id: "blue", name: "Azul Tradicional", priceModifier: 0 },
+      { id: "royal-blue", name: "Azul Real", priceModifier: 30 },
+      { id: "peacock-green", name: "Verde Pavão", priceModifier: 20 }
+    ],
+    ages: [
+      { id: "young", name: "Jovem (3-6 meses)", priceModifier: 0 },
+      { id: "adult", name: "Adulto (6-12 meses)", priceModifier: 50 },
+      { id: "mature", name: "Adulto (1+ anos)", priceModifier: 80 }
+    ]
+  },
+  { 
+    id: "arara", 
+    name: "Arara Vermelha", 
+    basePrice: 2400,
+    image: arara,
+    images: [arara, pavoesAzuis],
+    description: "Majestosa arara vermelha, ave símbolo da fauna brasileira.",
+    stock: "low",
+    colors: [
+      { id: "red", name: "Vermelho Clássico", priceModifier: 0 },
+      { id: "scarlet", name: "Escarlate", priceModifier: 100 }
+    ],
+    ages: [
+      { id: "young", name: "Jovem (6-12 meses)", priceModifier: 0 },
+      { id: "adult", name: "Adulto (1-2 anos)", priceModifier: 300 }
+    ]
+  },
+  { 
+    id: "papagaio", 
+    name: "Papagaio Cinzento", 
+    basePrice: 800,
+    image: papagaio,
+    images: [papagaio, arara],
+    description: "Papagaio cinzento africano, conhecido pela inteligência.",
+    stock: "out",
+    colors: [
+      { id: "grey", name: "Cinzento", priceModifier: 0 }
+    ],
+    ages: [
+      { id: "young", name: "Jovem (4-8 meses)", priceModifier: 0 },
+      { id: "adult", name: "Adulto (8+ meses)", priceModifier: 150 }
+    ]
+  }
   /*
-  { id: "blue-and-gold-macaw", name: "Blue-and-Gold Macaw", price: 2400, image: "https://placehold.co/600x400?text=Blue+%26+Gold+Macaw" },
-  { id: "scarlet-macaw", name: "Scarlet Macaw", price: 2600, image: "https://placehold.co/600x400?text=Scarlet+Macaw" },
   { id: "cockatoo", name: "Umbrella Cockatoo", price: 2200, image: "https://placehold.co/600x400?text=Umbrella+Cockatoo" },
   { id: "eclectus", name: "Eclectus Parrot", price: 1900, image: "https://placehold.co/600x400?text=Eclectus+Parrot" },
   { id: "ringneck", name: "Indian Ringneck", price: 450, image: "https://placehold.co/600x400?text=Indian+Ringneck" },
@@ -107,13 +174,26 @@ function formatPrice(value) {
 function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
 }
+function getStockStatus(stock, t) {
+  switch (stock) {
+    case "in":
+      return { text: t.inStock, color: "bg-green-500", textColor: "text-green-800" };
+    case "low":
+      return { text: t.lowStock, color: "bg-yellow-500", textColor: "text-yellow-800" };
+    case "out":
+      return { text: t.outOfStock, color: "bg-red-500", textColor: "text-red-800" };
+    default:
+      return { text: t.inStock, color: "bg-green-500", textColor: "text-green-800" };
+  }
+}
 
 // ------- APP -------
 export default function App() {
-  const [route, setRoute] = useState("home"); // 'home' | 'catalog' | 'cart'
+  const [route, setRoute] = useState("home"); // 'home' | 'catalog' | 'cart' | 'product-detail'
   const [cart, setCart] = useState({}); // { [productId]: quantity }
   const [language, setLanguage] = useState("pt"); // 'pt' | 'en'
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const cartCount = useMemo(() => Object.values(cart).reduce((a, b) => a + b, 0), [cart]);
   const t = TRANSLATIONS[language];
 
@@ -128,7 +208,7 @@ export default function App() {
 
   const cartItems = useMemo(() =>
     PRODUCTS.filter(p => cart[p.id] > 0)
-      .map(p => ({ product: p, qty: cart[p.id], subtotal: p.price * cart[p.id] })), [cart]);
+      .map(p => ({ product: p, qty: cart[p.id], subtotal: (p.basePrice || p.price) * cart[p.id] })), [cart]);
 
   const cartTotal = useMemo(() => cartItems.reduce((sum, i) => sum + i.subtotal, 0), [cartItems]);
 
@@ -169,7 +249,7 @@ export default function App() {
   function checkoutWhatsApp() {
     if (cartItems.length === 0) return;
     const text = encodeURIComponent(buildOrderMessage());
-    const url = `https://wa.me/${BUSINESS.whatsappNumber}?text=${text}`;
+    const url = `https://api.whatsapp.com/send?phone=${BUSINESS.whatsappNumber}&text=${text}`;
     window.open(url, "_blank", "noopener,noreferrer");
   }
 
@@ -180,6 +260,12 @@ export default function App() {
       const el = document.getElementById("catalogo");
       if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 0);
+  }
+
+  function viewProductDetail(productId) {
+    const product = PRODUCTS.find(p => p.id === productId);
+    setSelectedProduct(product);
+    setRoute("product-detail");
   }
 
   return (
@@ -297,7 +383,16 @@ export default function App() {
             <AboutSection t={t} />
           </>
         )}
-        {route === "catalog" && <Catalog onAdd={addToCart} cart={cart} t={t} />}
+        {route === "catalog" && <Catalog onAdd={addToCart} cart={cart} onViewDetail={viewProductDetail} t={t} />}
+        {route === "product-detail" && selectedProduct && (
+          <ProductDetail 
+            product={selectedProduct} 
+            onAdd={addToCart} 
+            cart={cart} 
+            onBackToCatalog={() => setRoute("catalog")} 
+            t={t} 
+          />
+        )}
         {route === "cart" && (
           <Cart
             items={cartItems}
@@ -312,7 +407,7 @@ export default function App() {
 
       {/* Fixed WhatsApp Button */}
       <a
-        href={`https://wa.me/${BUSINESS.whatsappNumber}?text=${encodeURIComponent("Olá! Gostaria de saber mais sobre as aves disponíveis.")}`}
+        href={`https://api.whatsapp.com/send?phone=${BUSINESS.whatsappNumber}&text=${encodeURIComponent("Olá! Gostaria de saber mais sobre as aves disponíveis.")}`}
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 z-50 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-110"
@@ -456,7 +551,7 @@ function AboutSection({ t }) {
               {t.aboutUsText}
             </p>
             <a
-              href={`https://wa.me/${BUSINESS.whatsappNumber}?text=${encodeURIComponent("Olá! Gostaria de saber mais sobre a vossa empresa.")}`}
+              href={`https://api.whatsapp.com/send?phone=${BUSINESS.whatsappNumber}&text=${encodeURIComponent("Olá! Gostaria de saber mais sobre a vossa empresa.")}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors"
@@ -473,7 +568,7 @@ function AboutSection({ t }) {
   );
 }
 
-function Catalog({ onAdd, cart, t }) {
+function Catalog({ onAdd, cart, onViewDetail, t }) {
   return (
     <section id="catalogo" className="max-w-6xl mx-auto px-4 py-12">
       <div className="flex items-end justify-between gap-4 mb-6">
@@ -483,26 +578,243 @@ function Catalog({ onAdd, cart, t }) {
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {PRODUCTS.map((p) => (
-          <article key={p.id} className="bg-white border border-stone-200 rounded-2xl overflow-hidden flex flex-col">
-            <img src={p.image} alt={`Foto de ${p.name} (placeholder)`} className="w-full aspect-[4/3] object-cover" />
-            <div className="p-4 flex-1 flex flex-col">
-              <h3 className="font-semibold text-lg leading-tight">{p.name}</h3>
-              <p className="mt-1 text-stone-700 font-medium">{formatPrice(p.price)}</p>
-              <div className="mt-auto pt-4 flex items-center gap-3">
+        {PRODUCTS.map((p) => {
+          const stockStatus = getStockStatus(p.stock, t);
+          return (
+            <article key={p.id} className="bg-white border border-stone-200 rounded-2xl overflow-hidden flex flex-col">
+              <div 
+                className="cursor-pointer relative"
+                onClick={() => onViewDetail(p.id)}
+              >
+                <img src={p.image} alt={`Foto de ${p.name}`} className="w-full aspect-[4/3] object-cover hover:opacity-90 transition-opacity" />
+              </div>
+              <div className="p-4 flex-1 flex flex-col">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-lg leading-tight">{p.name}</h3>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${stockStatus.color}`}></div>
+                    <span className={`text-xs font-medium ${stockStatus.textColor}`}>
+                      {stockStatus.text}
+                    </span>
+                  </div>
+                </div>
+                <p className="mt-1 text-stone-700 font-medium">{t.from} {formatPrice(p.basePrice || p.price)}</p>
+                <div className="mt-auto pt-4 flex items-center gap-3">
+                  <button
+                    onClick={() => onViewDetail(p.id)}
+                    disabled={p.stock === "out"}
+                    className={`flex-1 px-4 py-2 rounded-xl transition ${
+                      p.stock === "out" 
+                        ? "bg-stone-300 text-stone-500 cursor-not-allowed" 
+                        : "bg-stone-900 text-white hover:bg-stone-800"
+                    }`}
+                  >
+                    {p.stock === "out" ? t.outOfStock : t.buy}
+                  </button>
+                  {cart[p.id] > 0 && (
+                    <span className="text-sm text-stone-600">{t.inCart} {cart[p.id]}</span>
+                  )}
+                </div>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function ProductDetail({ product, onAdd, cart, onBackToCatalog, t }) {
+  const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || null);
+  const [selectedAge, setSelectedAge] = useState(product.ages?.[0] || null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  
+  const finalPrice = useMemo(() => {
+    let price = product.basePrice || product.price;
+    if (selectedColor) price += selectedColor.priceModifier;
+    if (selectedAge) price += selectedAge.priceModifier;
+    return price;
+  }, [product, selectedColor, selectedAge]);
+
+  const images = product.images || [product.image];
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  return (
+    <section className="max-w-6xl mx-auto px-4 py-12">
+      {/* Back button */}
+      <button
+        onClick={onBackToCatalog}
+        className="mb-6 flex items-center gap-2 px-4 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 transition"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+{t.backToCatalog}
+      </button>
+
+      <div className="grid lg:grid-cols-2 gap-8">
+        {/* Image Gallery */}
+        <div className="space-y-4">
+          <div className="relative bg-white border border-stone-200 rounded-2xl overflow-hidden aspect-[4/3]">
+            <img 
+              src={images[currentImageIndex]} 
+              alt={`${product.name} - Imagem ${currentImageIndex + 1}`} 
+              className="w-full h-full object-cover"
+            />
+            
+            {images.length > 1 && (
+              <>
                 <button
-                  onClick={() => onAdd(p.id, 1)}
-                  className="flex-1 px-4 py-2 rounded-xl bg-stone-900 text-white hover:bg-stone-800 transition"
+                  onClick={prevImage}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition"
                 >
-                  {t.add}
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
                 </button>
-                {cart[p.id] > 0 && (
-                  <span className="text-sm text-stone-600">{t.inCart} {cart[p.id]}</span>
-                )}
+                <button
+                  onClick={nextImage}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                
+                {/* Image indicators */}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                  {images.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentImageIndex(index)}
+                      className={`w-2 h-2 rounded-full transition ${
+                        index === currentImageIndex ? 'bg-white' : 'bg-white/50'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Thumbnail gallery */}
+          {images.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto">
+              {images.map((image, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentImageIndex(index)}
+                  className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition ${
+                    index === currentImageIndex ? 'border-blue-500' : 'border-stone-300'
+                  }`}
+                >
+                  <img src={image} alt={`Miniatura ${index + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Product Info */}
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
+            <p className="text-xl text-emerald-600 font-semibold">{formatPrice(finalPrice)}</p>
+            {product.description && (
+              <p className="mt-4 text-stone-700 leading-relaxed">{product.description}</p>
+            )}
+          </div>
+
+          {/* Color Selection */}
+          {product.colors && (
+            <div>
+              <h3 className="font-semibold mb-3">{t.color}</h3>
+              <div className="grid grid-cols-1 gap-2">
+                {product.colors.map((color) => (
+                  <label
+                    key={color.id}
+                    className={`flex items-center justify-between p-3 rounded-xl border-2 cursor-pointer transition ${
+                      selectedColor?.id === color.id 
+                        ? 'border-blue-500 bg-blue-50' 
+                        : 'border-stone-200 hover:border-stone-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="color"
+                        value={color.id}
+                        checked={selectedColor?.id === color.id}
+                        onChange={() => setSelectedColor(color)}
+                        className="sr-only"
+                      />
+                      <span className="font-medium">{color.name}</span>
+                    </div>
+                    {color.priceModifier > 0 && (
+                      <span className="text-sm text-stone-600">+{formatPrice(color.priceModifier)}</span>
+                    )}
+                  </label>
+                ))}
               </div>
             </div>
-          </article>
-        ))}
+          )}
+
+          {/* Age Selection */}
+          {product.ages && (
+            <div>
+              <h3 className="font-semibold mb-3">{t.age}</h3>
+              <div className="grid grid-cols-1 gap-2">
+                {product.ages.map((age) => (
+                  <label
+                    key={age.id}
+                    className={`flex items-center justify-between p-3 rounded-xl border-2 cursor-pointer transition ${
+                      selectedAge?.id === age.id 
+                        ? 'border-blue-500 bg-blue-50' 
+                        : 'border-stone-200 hover:border-stone-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="age"
+                        value={age.id}
+                        checked={selectedAge?.id === age.id}
+                        onChange={() => setSelectedAge(age)}
+                        className="sr-only"
+                      />
+                      <span className="font-medium">{age.name}</span>
+                    </div>
+                    {age.priceModifier > 0 && (
+                      <span className="text-sm text-stone-600">+{formatPrice(age.priceModifier)}</span>
+                    )}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Add to Cart */}
+          <div className="space-y-3">
+            <button
+              onClick={() => onAdd(product.id, 1)}
+              className="w-full px-6 py-4 text-lg font-semibold rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition"
+            >
+{t.addToCart} - {formatPrice(finalPrice)}
+            </button>
+            {cart[product.id] > 0 && (
+              <p className="text-center text-stone-600">
+                {t.inCart} {cart[product.id]}
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -523,7 +835,7 @@ function Cart({ items, total, onQty, onRemove, onCheckoutWhatsApp, t }) {
                   <img src={product.image} alt="" className="w-20 h-20 rounded-lg object-cover border border-stone-200" />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{product.name}</p>
-                    <p className="text-sm text-stone-600">{t.price} {formatPrice(product.price)}</p>
+                    <p className="text-sm text-stone-600">{t.price} {formatPrice(product.basePrice || product.price)}</p>
                     <div className="mt-2 flex items-center gap-2">
                       <label htmlFor={`qty-${product.id}`} className="text-sm text-stone-600">{t.qty}</label>
                       <input
