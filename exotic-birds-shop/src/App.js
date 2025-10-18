@@ -3,6 +3,7 @@ import logo from './assets/images/logo.jpeg';
 import arara from './assets/images/arara.jpeg';
 import papagaio from './assets/images/papagaio.jpeg';
 import pavoesAzuis from './assets/images/pavoes_azuis.jpg';
+import { loadCatalogFromCSV } from './utils/csvReader';
 
 // ------- CONFIG -------
 const BUSINESS = {
@@ -104,68 +105,149 @@ const CURRENCY = new Intl.NumberFormat("pt-PT", {
   currency: "EUR",
 });
 
-// Demo catalog with detailed product information
-const PRODUCTS = [
-  { 
-    id: "pavoes-azuis", 
-    name: "Pavões Azuis", 
-    basePrice: 120,
-    image: pavoesAzuis,
-    images: [pavoesAzuis, arara, papagaio],
-    description: "Lindos pavões azuis criados com muito cuidado e carinho. Aves saudáveis e bem socializadas.",
-    stock: "in", // "in", "low", "out"
-    colors: [
-      { id: "blue", name: "Azul Tradicional", priceModifier: 0 },
-      { id: "royal-blue", name: "Azul Real", priceModifier: 30 },
-      { id: "peacock-green", name: "Verde Pavão", priceModifier: 20 }
-    ],
-    ages: [
-      { id: "young", name: "Jovem (3-6 meses)", priceModifier: 0 },
-      { id: "adult", name: "Adulto (6-12 meses)", priceModifier: 50 },
-      { id: "mature", name: "Adulto (1+ anos)", priceModifier: 80 }
-    ]
-  },
-  { 
-    id: "arara", 
-    name: "Arara Vermelha", 
-    basePrice: 2400,
-    image: arara,
-    images: [arara, pavoesAzuis],
-    description: "Majestosa arara vermelha, ave símbolo da fauna brasileira.",
-    stock: "low",
-    colors: [
-      { id: "red", name: "Vermelho Clássico", priceModifier: 0 },
-      { id: "scarlet", name: "Escarlate", priceModifier: 100 }
-    ],
-    ages: [
-      { id: "young", name: "Jovem (6-12 meses)", priceModifier: 0 },
-      { id: "adult", name: "Adulto (1-2 anos)", priceModifier: 300 }
-    ]
-  },
-  { 
-    id: "papagaio", 
-    name: "Papagaio Cinzento", 
-    basePrice: 800,
-    image: papagaio,
-    images: [papagaio, arara],
-    description: "Papagaio cinzento africano, conhecido pela inteligência.",
-    stock: "out",
-    colors: [
-      { id: "grey", name: "Cinzento", priceModifier: 0 }
-    ],
-    ages: [
-      { id: "young", name: "Jovem (4-8 meses)", priceModifier: 0 },
-      { id: "adult", name: "Adulto (8+ meses)", priceModifier: 150 }
-    ]
-  }
-  /*
-  { id: "cockatoo", name: "Umbrella Cockatoo", price: 2200, image: "https://placehold.co/600x400?text=Umbrella+Cockatoo" },
-  { id: "eclectus", name: "Eclectus Parrot", price: 1900, image: "https://placehold.co/600x400?text=Eclectus+Parrot" },
-  { id: "ringneck", name: "Indian Ringneck", price: 450, image: "https://placehold.co/600x400?text=Indian+Ringneck" },
-  { id: "conure", name: "Sun Conure", price: 650, image: "https://placehold.co/600x400?text=Sun+Conure" },
-  { id: "lovebird", name: "Fischer's Lovebird (pair)", price: 170, image: "https://placehold.co/600x400?text=Lovebirds" },
-   */
-];
+// Fallback products function that handles language
+function getFallbackProducts(language) {
+  const descriptions = {
+    pt: {
+      "pavoes-azuis": "Lindos pavões azuis criados com muito cuidado e carinho. Aves saudáveis e bem socializadas.",
+      "arara": "Majestosa arara vermelha, ave símbolo da fauna brasileira.",
+      "papagaio": "Papagaio cinzento africano, conhecido pela inteligência."
+    },
+    en: {
+      "pavoes-azuis": "Beautiful blue peacocks raised with great care and affection. Healthy and well-socialized birds.",
+      "arara": "Majestic red macaw, symbolic bird of Brazilian fauna.",
+      "papagaio": "African grey parrot, known for its intelligence."
+    }
+  };
+  
+  const names = {
+    pt: { "pavoes-azuis": "Pavões Azuis", "arara": "Arara Vermelha", "papagaio": "Papagaio Cinzento" },
+    en: { "pavoes-azuis": "Blue Peacocks", "arara": "Red Macaw", "papagaio": "African Grey Parrot" }
+  };
+  
+  const colorNames = {
+    pt: {
+      "blue": "Azul Tradicional", "royal-blue": "Azul Real", "peacock-green": "Verde Pavão",
+      "red": "Vermelho Clássico", "scarlet": "Escarlate", "grey": "Cinzento"
+    },
+    en: {
+      "blue": "Traditional Blue", "royal-blue": "Royal Blue", "peacock-green": "Peacock Green", 
+      "red": "Classic Red", "scarlet": "Scarlet", "grey": "Grey"
+    }
+  };
+  
+  const ageNames = {
+    pt: {
+      "young-peacock": "Jovem (3-6 meses)", "adult-peacock": "Adulto (6-12 meses)", "mature-peacock": "Adulto (1+ anos)",
+      "young-macaw": "Jovem (6-12 meses)", "adult-macaw": "Adulto (1-2 anos)",
+      "young-parrot": "Jovem (4-8 meses)", "adult-parrot": "Adulto (8+ meses)"
+    },
+    en: {
+      "young-peacock": "Young (3-6 months)", "adult-peacock": "Adult (6-12 months)", "mature-peacock": "Mature (1+ years)",
+      "young-macaw": "Young (6-12 months)", "adult-macaw": "Adult (1-2 years)", 
+      "young-parrot": "Young (4-8 months)", "adult-parrot": "Adult (8+ months)"
+    }
+  };
+
+  return [
+    { 
+      id: "pavoes-azuis", 
+      name: names[language]["pavoes-azuis"],
+      basePrice: 50,
+      eggPrice: 50,
+      image: pavoesAzuis,
+      images: [pavoesAzuis, arara, papagaio],
+      description: descriptions[language]["pavoes-azuis"],
+      stock: "in",
+      colors: [
+        { id: "blue", name: colorNames[language]["blue"], priceModifier: 0 },
+        { id: "royal-blue", name: colorNames[language]["royal-blue"], priceModifier: 30 },
+        { id: "peacock-green", name: colorNames[language]["peacock-green"], priceModifier: 20 }
+      ],
+      ages: [
+        { id: "egg", name: language === 'pt' ? "Ovo" : "Egg", priceModifier: 0 },
+        { id: "1week", name: language === 'pt' ? "1 semana" : "1 week", priceModifier: 10 },
+        { id: "2weeks", name: language === 'pt' ? "2 semanas" : "2 weeks", priceModifier: 20 },
+        { id: "3weeks", name: language === 'pt' ? "3 semanas" : "3 weeks", priceModifier: 30 },
+        { id: "1month", name: language === 'pt' ? "1 mês" : "1 month", priceModifier: 70 },
+        { id: "2months", name: language === 'pt' ? "2 meses" : "2 months", priceModifier: 10 },
+        { id: "3months", name: language === 'pt' ? "3 meses" : "3 months", priceModifier: 20 },
+        { id: "4months", name: language === 'pt' ? "4 meses" : "4 months", priceModifier: 30 },
+        { id: "5months", name: language === 'pt' ? "5 meses" : "5 months", priceModifier: 40 },
+        { id: "6months", name: language === 'pt' ? "6 meses" : "6 months", priceModifier: 50 },
+        { id: "7months", name: language === 'pt' ? "7 meses" : "7 months", priceModifier: 60 },
+        { id: "8months", name: language === 'pt' ? "8 meses" : "8 months", priceModifier: 70 },
+        { id: "9months", name: language === 'pt' ? "9 meses" : "9 months", priceModifier: 80 },
+        { id: "10months", name: language === 'pt' ? "10 meses" : "10 months", priceModifier: 90 },
+        { id: "11months", name: language === 'pt' ? "11 meses" : "11 months", priceModifier: 100 },
+        { id: "12months", name: language === 'pt' ? "12 meses" : "12 months", priceModifier: 110 }
+      ]
+    },
+    { 
+      id: "arara", 
+      name: names[language]["arara"],
+      basePrice: 1200,
+      eggPrice: 1200,
+      image: arara,
+      images: [arara, pavoesAzuis],
+      description: descriptions[language]["arara"],
+      stock: "low",
+      colors: [
+        { id: "red", name: colorNames[language]["red"], priceModifier: 0 },
+        { id: "scarlet", name: colorNames[language]["scarlet"], priceModifier: 100 }
+      ],
+      ages: [
+        { id: "egg", name: language === 'pt' ? "Ovo" : "Egg", priceModifier: 0 },
+        { id: "1week", name: language === 'pt' ? "1 semana" : "1 week", priceModifier: 200 },
+        { id: "2weeks", name: language === 'pt' ? "2 semanas" : "2 weeks", priceModifier: 400 },
+        { id: "3weeks", name: language === 'pt' ? "3 semanas" : "3 weeks", priceModifier: 600 },
+        { id: "1month", name: language === 'pt' ? "1 mês" : "1 month", priceModifier: 1200 },
+        { id: "2months", name: language === 'pt' ? "2 meses" : "2 months", priceModifier: 100 },
+        { id: "3months", name: language === 'pt' ? "3 meses" : "3 months", priceModifier: 200 },
+        { id: "4months", name: language === 'pt' ? "4 meses" : "4 months", priceModifier: 250 },
+        { id: "5months", name: language === 'pt' ? "5 meses" : "5 months", priceModifier: 280 },
+        { id: "6months", name: language === 'pt' ? "6 meses" : "6 months", priceModifier: 300 },
+        { id: "7months", name: language === 'pt' ? "7 meses" : "7 months", priceModifier: 320 },
+        { id: "8months", name: language === 'pt' ? "8 meses" : "8 months", priceModifier: 340 },
+        { id: "9months", name: language === 'pt' ? "9 meses" : "9 months", priceModifier: 360 },
+        { id: "10months", name: language === 'pt' ? "10 meses" : "10 months", priceModifier: 380 },
+        { id: "11months", name: language === 'pt' ? "11 meses" : "11 months", priceModifier: 400 },
+        { id: "12months", name: language === 'pt' ? "12 meses" : "12 months", priceModifier: 450 }
+      ]
+    },
+    { 
+      id: "papagaio", 
+      name: names[language]["papagaio"],
+      basePrice: 400,
+      eggPrice: 400,
+      image: papagaio,
+      images: [papagaio, arara],
+      description: descriptions[language]["papagaio"],
+      stock: "out",
+      colors: [
+        { id: "grey", name: colorNames[language]["grey"], priceModifier: 0 }
+      ],
+      ages: [
+        { id: "egg", name: language === 'pt' ? "Ovo" : "Egg", priceModifier: 0 },
+        { id: "1week", name: language === 'pt' ? "1 semana" : "1 week", priceModifier: 50 },
+        { id: "2weeks", name: language === 'pt' ? "2 semanas" : "2 weeks", priceModifier: 100 },
+        { id: "3weeks", name: language === 'pt' ? "3 semanas" : "3 weeks", priceModifier: 150 },
+        { id: "1month", name: language === 'pt' ? "1 mês" : "1 month", priceModifier: 400 },
+        { id: "2months", name: language === 'pt' ? "2 meses" : "2 months", priceModifier: 20 },
+        { id: "3months", name: language === 'pt' ? "3 meses" : "3 months", priceModifier: 40 },
+        { id: "4months", name: language === 'pt' ? "4 meses" : "4 months", priceModifier: 60 },
+        { id: "5months", name: language === 'pt' ? "5 meses" : "5 months", priceModifier: 80 },
+        { id: "6months", name: language === 'pt' ? "6 meses" : "6 months", priceModifier: 100 },
+        { id: "7months", name: language === 'pt' ? "7 meses" : "7 months", priceModifier: 120 },
+        { id: "8months", name: language === 'pt' ? "8 meses" : "8 months", priceModifier: 140 },
+        { id: "9months", name: language === 'pt' ? "9 meses" : "9 months", priceModifier: 150 },
+        { id: "10months", name: language === 'pt' ? "10 meses" : "10 months", priceModifier: 160 },
+        { id: "11months", name: language === 'pt' ? "11 meses" : "11 months", priceModifier: 170 },
+        { id: "12months", name: language === 'pt' ? "12 meses" : "12 months", priceModifier: 180 }
+      ]
+    }
+  ];
+}
 
 // ------- HELPERS -------
 function formatPrice(value) {
@@ -194,6 +276,8 @@ export default function App() {
   const [language, setLanguage] = useState("pt"); // 'pt' | 'en'
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const cartCount = useMemo(() => Object.values(cart).reduce((a, b) => a + b, 0), [cart]);
   const t = TRANSLATIONS[language];
 
@@ -206,9 +290,63 @@ export default function App() {
     localStorage.setItem("birdshop_cart", JSON.stringify(cart));
   }, [cart]);
 
+  useEffect(() => {
+    async function loadCatalog() {
+      try {
+        setLoading(true);
+        // Temporarily force fallback to test
+        throw new Error('Testing fallback');
+        const catalogProducts = await loadCatalogFromCSV('/catalog.csv', language);
+        
+        console.log('Loaded products for language:', language, catalogProducts);
+        
+        // Map image paths to imported images
+        const productsWithImages = catalogProducts.map(product => ({
+          ...product,
+          image: getImageForProduct(product.image),
+          images: product.images ? product.images.map(getImageForProduct) : [getImageForProduct(product.image)]
+        }));
+        
+        setProducts(productsWithImages);
+        
+        // Update selected product if we're viewing product details
+        if (selectedProduct) {
+          const updatedProduct = productsWithImages.find(p => p.id === selectedProduct.id);
+          if (updatedProduct) {
+            setSelectedProduct(updatedProduct);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load catalog:', error);
+        // Fallback to hardcoded products
+        const fallbackProducts = getFallbackProducts(language);
+        setProducts(fallbackProducts);
+        
+        // Update selected product with fallback data
+        if (selectedProduct) {
+          const updatedProduct = fallbackProducts.find(p => p.id === selectedProduct.id);
+          if (updatedProduct) {
+            setSelectedProduct(updatedProduct);
+          }
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    loadCatalog();
+  }, [language, selectedProduct?.id]);
+
+  function getImageForProduct(imagePath) {
+    if (imagePath.includes('pavoes_azuis')) return pavoesAzuis;
+    if (imagePath.includes('arara')) return arara;
+    if (imagePath.includes('papagaio')) return papagaio;
+    return imagePath; // Return original path as fallback
+  }
+
   const cartItems = useMemo(() =>
-    PRODUCTS.filter(p => cart[p.id] > 0)
-      .map(p => ({ product: p, qty: cart[p.id], subtotal: (p.basePrice || p.price) * cart[p.id] })), [cart]);
+    products.filter(p => cart[p.id] > 0)
+      .map(p => ({ product: p, qty: cart[p.id], subtotal: (p.basePrice || p.price) * cart[p.id] })), [cart, products]);
 
   const cartTotal = useMemo(() => cartItems.reduce((sum, i) => sum + i.subtotal, 0), [cartItems]);
 
@@ -263,7 +401,7 @@ export default function App() {
   }
 
   function viewProductDetail(productId) {
-    const product = PRODUCTS.find(p => p.id === productId);
+    const product = products.find(p => p.id === productId);
     setSelectedProduct(product);
     setRoute("product-detail");
   }
@@ -383,7 +521,7 @@ export default function App() {
             <AboutSection t={t} />
           </>
         )}
-        {route === "catalog" && <Catalog onAdd={addToCart} cart={cart} onViewDetail={viewProductDetail} t={t} />}
+        {route === "catalog" && <Catalog products={products} loading={loading} onAdd={addToCart} cart={cart} onViewDetail={viewProductDetail} t={t} />}
         {route === "product-detail" && selectedProduct && (
           <ProductDetail 
             product={selectedProduct} 
@@ -568,17 +706,27 @@ function AboutSection({ t }) {
   );
 }
 
-function Catalog({ onAdd, cart, onViewDetail, t }) {
+function Catalog({ products, loading, onAdd, cart, onViewDetail, t }) {
+  if (loading) {
+    return (
+      <section id="catalogo" className="max-w-6xl mx-auto px-4 py-12">
+        <div className="text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6">{t.catalog}</h2>
+          <p className="text-stone-600">Loading catalog...</p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section id="catalogo" className="max-w-6xl mx-auto px-4 py-12">
       <div className="flex items-end justify-between gap-4 mb-6">
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold">{t.catalog}</h2>
-
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {PRODUCTS.map((p) => {
+        {products.map((p) => {
           const stockStatus = getStockStatus(p.stock, t);
           return (
             <article key={p.id} className="bg-white border border-stone-200 rounded-2xl overflow-hidden flex flex-col">
@@ -632,7 +780,10 @@ function ProductDetail({ product, onAdd, cart, onBackToCatalog, t }) {
   const finalPrice = useMemo(() => {
     let price = product.basePrice || product.price;
     if (selectedColor) price += selectedColor.priceModifier;
-    if (selectedAge) price += selectedAge.priceModifier;
+    if (selectedAge) {
+      // Use absolute price if available, otherwise use price modifier
+      price = selectedAge.absolutePrice || (price + selectedAge.priceModifier);
+    }
     return price;
   }, [product, selectedColor, selectedAge]);
 
