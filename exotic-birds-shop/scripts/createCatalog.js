@@ -2,138 +2,99 @@ const XLSX = require('xlsx');
 const fs = require('fs');
 const path = require('path');
 
-// Sample catalog data with translations
-const catalogData = [
-  ['ID', 'Name_PT', 'Name_EN', 'Base Price', 'Egg Price', 'Image', 'Description_PT', 'Description_EN', 'Stock', 'Colors', 'Ages'],
-  [
-    'pavoes-azuis',
-    'Pavões Azuis',
-    'Blue Peacocks',
-    120,
-    50,
-    './assets/images/pavoes_azuis.jpg',
-    'Lindos pavões azuis criados com muito cuidado e carinho. Aves saudáveis e bem socializadas.',
-    'Beautiful blue peacocks raised with great care and affection. Healthy and well-socialized birds.',
-    'in',
-    JSON.stringify([
-      { id: "blue", name_pt: "Azul Tradicional", name_en: "Traditional Blue", priceModifier: 0 },
-      { id: "royal-blue", name_pt: "Azul Real", name_en: "Royal Blue", priceModifier: 30 },
-      { id: "peacock-green", name_pt: "Verde Pavão", name_en: "Peacock Green", priceModifier: 20 }
-    ]),
-    JSON.stringify([
-      { id: "egg", name_pt: "Ovo", name_en: "Egg", priceModifier: -70 },
-      { id: "1week", name_pt: "1 semana", name_en: "1 week", priceModifier: -60 },
-      { id: "2weeks", name_pt: "2 semanas", name_en: "2 weeks", priceModifier: -50 },
-      { id: "3weeks", name_pt: "3 semanas", name_en: "3 weeks", priceModifier: -40 },
-      { id: "1month", name_pt: "1 mês", name_en: "1 month", priceModifier: 0 },
-      { id: "2months", name_pt: "2 meses", name_en: "2 months", priceModifier: 10 },
-      { id: "3months", name_pt: "3 meses", name_en: "3 months", priceModifier: 20 },
-      { id: "4months", name_pt: "4 meses", name_en: "4 months", priceModifier: 30 },
-      { id: "5months", name_pt: "5 meses", name_en: "5 months", priceModifier: 40 },
-      { id: "6months", name_pt: "6 meses", name_en: "6 months", priceModifier: 50 },
-      { id: "7months", name_pt: "7 meses", name_en: "7 months", priceModifier: 60 },
-      { id: "8months", name_pt: "8 meses", name_en: "8 months", priceModifier: 70 },
-      { id: "9months", name_pt: "9 meses", name_en: "9 months", priceModifier: 80 },
-      { id: "10months", name_pt: "10 meses", name_en: "10 months", priceModifier: 90 },
-      { id: "11months", name_pt: "11 meses", name_en: "11 months", priceModifier: 100 },
-      { id: "12months", name_pt: "12 meses", name_en: "12 months", priceModifier: 110 }
-    ])
-  ],
-  [
-    'arara',
-    'Arara Vermelha',
-    'Red Macaw',
-    2400,
-    1200,
-    './assets/images/arara.jpeg',
-    'Majestosa arara vermelha, ave símbolo da fauna brasileira.',
-    'Majestic red macaw, symbolic bird of Brazilian fauna.',
-    'low',
-    JSON.stringify([
-      { id: "red", name_pt: "Vermelho Clássico", name_en: "Classic Red", priceModifier: 0 },
-      { id: "scarlet", name_pt: "Escarlate", name_en: "Scarlet", priceModifier: 100 }
-    ]),
-    JSON.stringify([
-      { id: "egg", name_pt: "Ovo", name_en: "Egg", priceModifier: -1200 },
-      { id: "1week", name_pt: "1 semana", name_en: "1 week", priceModifier: -1000 },
-      { id: "2weeks", name_pt: "2 semanas", name_en: "2 weeks", priceModifier: -800 },
-      { id: "3weeks", name_pt: "3 semanas", name_en: "3 weeks", priceModifier: -600 },
-      { id: "1month", name_pt: "1 mês", name_en: "1 month", priceModifier: 0 },
-      { id: "2months", name_pt: "2 meses", name_en: "2 months", priceModifier: 100 },
-      { id: "3months", name_pt: "3 meses", name_en: "3 months", priceModifier: 200 },
-      { id: "4months", name_pt: "4 meses", name_en: "4 months", priceModifier: 250 },
-      { id: "5months", name_pt: "5 meses", name_en: "5 months", priceModifier: 280 },
-      { id: "6months", name_pt: "6 meses", name_en: "6 months", priceModifier: 300 },
-      { id: "7months", name_pt: "7 meses", name_en: "7 months", priceModifier: 320 },
-      { id: "8months", name_pt: "8 meses", name_en: "8 months", priceModifier: 340 },
-      { id: "9months", name_pt: "9 meses", name_en: "9 months", priceModifier: 360 },
-      { id: "10months", name_pt: "10 meses", name_en: "10 months", priceModifier: 380 },
-      { id: "11months", name_pt: "11 meses", name_en: "11 months", priceModifier: 400 },
-      { id: "12months", name_pt: "12 meses", name_en: "12 months", priceModifier: 450 }
-    ])
-  ],
-  [
-    'papagaio',
-    'Papagaio Cinzento',
-    'African Grey Parrot',
-    800,
-    400,
-    './assets/images/papagaio.jpeg',
-    'Papagaio cinzento africano, conhecido pela inteligência.',
-    'African grey parrot, known for its intelligence.',
-    'out',
-    JSON.stringify([
-      { id: "grey", name_pt: "Cinzento", name_en: "Grey", priceModifier: 0 }
-    ]),
-    JSON.stringify([
-      { id: "egg", name_pt: "Ovo", name_en: "Egg", priceModifier: -400 },
-      { id: "1week", name_pt: "1 semana", name_en: "1 week", priceModifier: -350 },
-      { id: "2weeks", name_pt: "2 semanas", name_en: "2 weeks", priceModifier: -300 },
-      { id: "3weeks", name_pt: "3 semanas", name_en: "3 weeks", priceModifier: -250 },
-      { id: "1month", name_pt: "1 mês", name_en: "1 month", priceModifier: 0 },
-      { id: "2months", name_pt: "2 meses", name_en: "2 months", priceModifier: 20 },
-      { id: "3months", name_pt: "3 meses", name_en: "3 months", priceModifier: 40 },
-      { id: "4months", name_pt: "4 meses", name_en: "4 months", priceModifier: 60 },
-      { id: "5months", name_pt: "5 meses", name_en: "5 months", priceModifier: 80 },
-      { id: "6months", name_pt: "6 meses", name_en: "6 months", priceModifier: 100 },
-      { id: "7months", name_pt: "7 meses", name_en: "7 months", priceModifier: 120 },
-      { id: "8months", name_pt: "8 meses", name_en: "8 months", priceModifier: 140 },
-      { id: "9months", name_pt: "9 meses", name_en: "9 months", priceModifier: 150 },
-      { id: "10months", name_pt: "10 meses", name_en: "10 months", priceModifier: 160 },
-      { id: "11months", name_pt: "11 meses", name_en: "11 months", priceModifier: 170 },
-      { id: "12months", name_pt: "12 meses", name_en: "12 months", priceModifier: 180 }
-    ])
-  ]
+const DAY = 24 * 60 * 60 * 1000;
+
+function formatDateRelative(daysAgo) {
+  const date = new Date(Date.now() - daysAgo * DAY);
+  date.setHours(0, 0, 0, 0);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+const HEADER = [
+  'SpeciesID',
+  'SpeciesName_PT',
+  'SpeciesName_EN',
+  'SpeciesBasePrice',
+  'SpeciesEggPrice',
+  'SpeciesImage',
+  'SpeciesDescription_PT',
+  'SpeciesDescription_EN',
+  'SpeciesStock',
+  'ColorID',
+  'ColorName_PT',
+  'ColorName_EN',
+  'BirthDate',
+  'AgeCategoryOverride',
+  'VariantPrice',
+  'Quantity',
+  'Sold',
+  'VariantImage',
+  'Notes'
 ];
 
-// Create workbook and worksheet
-const wb = XLSX.utils.book_new();
-const ws = XLSX.utils.aoa_to_sheet(catalogData);
-
-// Set column widths
-ws['!cols'] = [
-  { width: 15 }, // ID
-  { width: 20 }, // Name_PT
-  { width: 20 }, // Name_EN
-  { width: 12 }, // Base Price
-  { width: 30 }, // Image
-  { width: 50 }, // Description_PT
-  { width: 50 }, // Description_EN
-  { width: 10 }, // Stock
-  { width: 40 }, // Colors
-  { width: 40 }  // Ages
+const ROWS = [
+  ['pavoes-azuis', 'Pavões Azuis', 'Blue Peacocks', 150, 55, './assets/images/pavoes_azuis.jpg', 'Lindos pavões azuis criados com cuidado e carinho. Aves saudáveis e bem socializadas.', 'Beautiful blue peacocks raised with great care and affection. Healthy and well-socialized birds.', 'in', 'blue', 'Azul Tradicional', 'Traditional Blue', formatDateRelative(0), 'egg', 55, 6, false, './assets/images/pavoes_azuis.jpg', 'Lote fresco para incubação imediata.'],
+  ['pavoes-azuis', 'Pavões Azuis', 'Blue Peacocks', 150, 55, './assets/images/pavoes_azuis.jpg', 'Lindos pavões azuis criados com cuidado e carinho. Aves saudáveis e bem socializadas.', 'Beautiful blue peacocks raised with great care and affection. Healthy and well-socialized birds.', 'in', 'blue', 'Azul Tradicional', 'Traditional Blue', formatDateRelative(32), '', 150, 4, false, './assets/images/pavoes_azuis.jpg', 'Criação em recinto exterior.'],
+  ['pavoes-azuis', 'Pavões Azuis', 'Blue Peacocks', 150, 55, './assets/images/pavoes_azuis.jpg', 'Lindos pavões azuis criados com cuidado e carinho. Aves saudáveis e bem socializadas.', 'Beautiful blue peacocks raised with great care and affection. Healthy and well-socialized birds.', 'in', 'royal-blue', 'Azul Real', 'Royal Blue', formatDateRelative(70), '', 185, 2, false, './assets/images/pavoes_azuis.jpg', 'Seleção azul real com plumagem intensa.'],
+  ['pavoes-azuis', 'Pavões Azuis', 'Blue Peacocks', 150, 55, './assets/images/pavoes_azuis.jpg', 'Lindos pavões azuis criados com cuidado e carinho. Aves saudáveis e bem socializadas.', 'Beautiful blue peacocks raised with great care and affection. Healthy and well-socialized birds.', 'in', 'peacock-green', 'Verde Pavão', 'Peacock Green', formatDateRelative(95), '', 195, 1, false, './assets/images/pavoes_azuis.jpg', 'Variante verde pavão rara.'],
+  ['arara', 'Arara Vermelha', 'Red Macaw', 2400, 1200, './assets/images/arara.jpeg', 'Majestosa arara vermelha, ave símbolo da fauna brasileira.', 'Majestic red macaw, symbolic bird of Brazilian fauna.', 'low', 'red', 'Vermelho Clássico', 'Classic Red', formatDateRelative(0), 'egg', 1300, 3, false, './assets/images/arara.jpeg', 'Ovos recolhidos esta semana.'],
+  ['arara', 'Arara Vermelha', 'Red Macaw', 2400, 1200, './assets/images/arara.jpeg', 'Majestosa arara vermelha, ave símbolo da fauna brasileira.', 'Majestic red macaw, symbolic bird of Brazilian fauna.', 'low', 'red', 'Vermelho Clássico', 'Classic Red', formatDateRelative(118), '', 2650, 2, false, './assets/images/arara.jpeg', 'Juvenis com treino inicial de socialização.'],
+  ['arara', 'Arara Vermelha', 'Red Macaw', 2400, 1200, './assets/images/arara.jpeg', 'Majestosa arara vermelha, ave símbolo da fauna brasileira.', 'Majestic red macaw, symbolic bird of Brazilian fauna.', 'low', 'scarlet', 'Escarlate', 'Scarlet', formatDateRelative(460), '', 2900, 1, false, './assets/images/arara.jpeg', 'Adulto escarlate pronto para reprodução.'],
+  ['papagaio', 'Papagaio Cinzento', 'African Grey Parrot', 800, 400, './assets/images/papagaio.jpeg', 'Papagaio cinzento africano, conhecido pela inteligência.', 'African grey parrot, known for its intelligence.', 'out', 'grey', 'Cinzento', 'Grey', formatDateRelative(0), 'egg', 420, 5, false, './assets/images/papagaio.jpeg', 'Disponível apenas para incubação monitorizada.'],
+  ['papagaio', 'Papagaio Cinzento', 'African Grey Parrot', 800, 400, './assets/images/papagaio.jpeg', 'Papagaio cinzento africano, conhecido pela inteligência.', 'African grey parrot, known for its intelligence.', 'out', 'grey', 'Cinzento', 'Grey', formatDateRelative(182), '', 950, 1, false, './assets/images/papagaio.jpeg', 'Jovem com vocalização inicial.']
 ];
 
-XLSX.utils.book_append_sheet(wb, ws, 'Catalog');
+const workbook = XLSX.utils.book_new();
+const worksheet = XLSX.utils.aoa_to_sheet([HEADER, ...ROWS]);
 
-// Ensure public directory exists
+worksheet['!cols'] = [
+  { width: 16 },
+  { width: 22 },
+  { width: 22 },
+  { width: 16 },
+  { width: 16 },
+  { width: 36 },
+  { width: 52 },
+  { width: 52 },
+  { width: 10 },
+  { width: 16 },
+  { width: 24 },
+  { width: 24 },
+  { width: 14 },
+  { width: 18 },
+  { width: 16 },
+  { width: 10 },
+  { width: 36 },
+  { width: 30 }
+];
+
+XLSX.utils.book_append_sheet(workbook, worksheet, 'Catalog');
+
 const publicDir = path.join(__dirname, '..', 'public');
 if (!fs.existsSync(publicDir)) {
   fs.mkdirSync(publicDir, { recursive: true });
 }
 
-// Write the file with specific options for better compatibility
-const filePath = path.join(publicDir, 'catalog.xlsx');
-XLSX.writeFile(wb, filePath, { bookType: 'xlsx', type: 'binary' });
+const excelPath = path.join(publicDir, 'catalog.xlsx');
+XLSX.writeFile(workbook, excelPath, { bookType: 'xlsx', type: 'binary' });
 
-console.log('Excel catalog file created at:', filePath);
+const csvPath = path.join(publicDir, 'catalog.csv');
+const csvLines = [HEADER, ...ROWS]
+  .map((row) => row.map(valueToCsv).join(','))
+  .join('\n');
+fs.writeFileSync(csvPath, csvLines, 'utf8');
+
+console.log('Excel catalog file created at:', excelPath);
+console.log('CSV catalog file created at:', csvPath);
+
+function valueToCsv(value) {
+  if (value === null || value === undefined) return '';
+  const str = String(value);
+  if (/[",\n]/.test(str)) {
+    return '"' + str.replace(/"/g, '""') + '"';
+  }
+  return str;
+}

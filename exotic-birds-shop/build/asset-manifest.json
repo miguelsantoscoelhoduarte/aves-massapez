@@ -1,17 +1,19 @@
 {
   "files": {
-    "main.css": "/aves-massapez/static/css/main.46419422.css",
-    "main.js": "/aves-massapez/static/js/main.7d7b6b41.js",
+    "main.css": "/aves-massapez/static/css/main.6897284d.css",
+    "main.js": "/aves-massapez/static/js/main.166717e6.js",
+    "static/js/238.6964aa8c.chunk.js": "/aves-massapez/static/js/238.6964aa8c.chunk.js",
     "static/media/pavoes_azuis.jpg": "/aves-massapez/static/media/pavoes_azuis.3ca0fa47fb4d80ad997b.jpg",
     "static/media/arara.jpeg": "/aves-massapez/static/media/arara.f0947fb28070b36daa55.jpeg",
     "static/media/logo.jpeg": "/aves-massapez/static/media/logo.4401d2411617aff537ec.jpeg",
     "static/media/papagaio.jpeg": "/aves-massapez/static/media/papagaio.267aeb9189f24400019b.jpeg",
     "index.html": "/aves-massapez/index.html",
-    "main.46419422.css.map": "/aves-massapez/static/css/main.46419422.css.map",
-    "main.7d7b6b41.js.map": "/aves-massapez/static/js/main.7d7b6b41.js.map"
+    "main.6897284d.css.map": "/aves-massapez/static/css/main.6897284d.css.map",
+    "main.166717e6.js.map": "/aves-massapez/static/js/main.166717e6.js.map",
+    "238.6964aa8c.chunk.js.map": "/aves-massapez/static/js/238.6964aa8c.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.46419422.css",
-    "static/js/main.7d7b6b41.js"
+    "static/css/main.6897284d.css",
+    "static/js/main.166717e6.js"
   ]
 }
